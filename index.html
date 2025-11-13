@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Interaction App with Scene Graphs</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --border-radius: 8px;
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f0f0;
+            padding: var(--spacing-md);
+            gap: var(--spacing-md);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            gap: var(--spacing-md);
+            max-width: 100%;
+            height: calc(100vh - 100px);
+            min-height: 500px;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            background-color: white;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            min-width: 0; /* Prevent flex items from overflowing */
+        }
+
+        .video-container, .graph-container {
+            flex: 1;
+            position: relative;
+            min-height: 0; /* Allow container to shrink */
+            border: 2px solid #333;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        #videoFeed {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: black;
+        }
+
+        #graphFrame {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .io-areas {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            max-height: 150px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            background-color: var(--primary-color);
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        #startButton.start {
+            background-color: var(--success-color);
+        }
+
+        #startButton.stop {
+            background-color: var(--danger-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+
+            .video-container, .graph-container {
+                aspect-ratio: 4/3;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: var(--spacing-sm);
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .source-selector {
+            display: none;  /* Hide the source selector */
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .interval-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .interval-selector label {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .interval-selector select {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Camera Interaction App with Scene Graphs</h1>
+
+    <div class="container">
+        <div class="left-panel">
+            <div class="video-container">
+                <video id="videoFeed" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </div>
+            <div class="controls">
+                <div class="interval-selector">
+                    <label for="frameInterval">Frame Interval:</label>
+                    <select id="frameInterval" class="input-field">
+                        <option value="2000">2 seconds</option>
+                        <option value="6000">6 seconds</option>
+                        <option value="10000">10 seconds</option>
+                    </select>
+                </div>
+                <textarea id="instructionText" class="input-field" rows="2" placeholder="Enter instruction here..."></textarea>
+                <button id="startButton" class="start">Start</button>
+                <textarea id="responseText" class="response-field" rows="4" readonly></textarea>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="graph-container">
+                <iframe id="graphFrame" frameborder="0"></iframe>
+            </div>
+            <div class="controls">
+                <button id="resetButton">Reset Graph</button>
+                <button id="exportJSON">Export JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoFeed');
+        const canvas = document.getElementById('canvas');
+        const instructionText = document.getElementById('instructionText');
+        const responseText = document.getElementById('responseText');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const exportJSONBtn = document.getElementById('exportJSON');
+        const graphFrame = document.getElementById('graphFrame');
+        const frameInterval = document.getElementById('frameInterval');
+
+        // Fixed configuration
+        const BASE_URL = 'http://localhost:8080';
+        const GRAPH_URL = 'http://localhost:8081';
+        let INTERVAL_MS = parseInt(frameInterval.value); // Dynamic interval
+
+        // More detailed default instruction
+        instructionText.value = "Describe what's happening in the scene, including who is there, what they're doing, and how objects relate to each other. Focus on actions and relationships between elements.";
+
+        let stream;
+        let intervalId;
+        let isProcessing = false;
+        let videoPlayer = null;
+
+        // Modified captureImage function to handle all video sources
+        function captureImage() {
+            if (!video.videoWidth) {
+                console.warn("Video stream not ready for capture.");
+                return null;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        // Handle interval changes
+        frameInterval.addEventListener('change', function() {
+            INTERVAL_MS = parseInt(this.value);
+            if (isProcessing) {
+                // Restart the interval if already processing
+                clearInterval(intervalId);
+                intervalId = setInterval(sendData, INTERVAL_MS);
+            }
+        });
+
+        // Modified sendData function to ensure graph updates
+        async function sendData() {
+            if (!isProcessing) return;
+
+            const instruction = instructionText.value;
+            const imageBase64URL = captureImage();
+
+            if (!imageBase64URL) {
+                responseText.value = "Failed to capture frame. Stream might not be active.";
+                return;
+            }
+
+            try {
+                // Get caption from LLM
+                const caption = await sendChatCompletionRequest(instruction, imageBase64URL);
+                responseText.value = caption;
+
+                // Update scene graph
+                try {
+                    const response = await fetch(`${GRAPH_URL}/process_caption`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            caption: caption,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Scene graph error:', errorData);
+                        throw new Error(errorData.detail?.error || 'Failed to update scene graph');
+                    }
+
+                    const data = await response.json();
+                    console.log('Scene graph processed:', data);
+                    
+                    // Update graph visualization
+                    if (data.visualization_path) {
+                        const fullUrl = `${GRAPH_URL}${data.visualization_path}`;
+                        console.log('Loading visualization from:', fullUrl);
+                        
+                        // Add error handling for iframe loading
+                        graphFrame.onerror = function() {
+                            console.error('Error loading visualization');
+                            responseText.value += '\n[Error loading visualization]';
+                        };
+                        
+                        // Add load event handler
+                        graphFrame.onload = function() {
+                            console.log('Visualization loaded successfully');
+                        };
+                        
+                        // Set the source with a small delay to ensure proper loading
+                        setTimeout(() => {
+                            graphFrame.src = fullUrl;
+                        }, 100);
+                    }
+                    
+                    // Show status message
+                    if (data.message) {
+                        responseText.value += `\n[Graph: ${data.message}]`;
+                    }
+                } catch (error) {
+                    console.error('Error updating scene graph:', error);
+                    responseText.value += `\n[Scene Graph Error: ${error.message}]`;
+                }
+            } catch (error) {
+                console.error('Error sending data:', error);
+                responseText.value = `Error: ${error.message}`;
+            }
+        }
+
+        // Modified handleStart function
+        function handleStart() {
+            if (!stream) {
+                responseText.value = "Camera not available. Cannot start.";
+                alert("Camera not available. Please ensure your camera is connected and permissions are granted.");
+                return;
+            }
+
+            isProcessing = true;
+            startButton.textContent = "Stop";
+            startButton.classList.remove('start');
+            startButton.classList.add('stop');
+            instructionText.disabled = true;
+            frameInterval.disabled = true;
+
+            responseText.value = "Processing started...";
+            
+            // Initial immediate call
+            sendData(); 
+            
+            // Then set interval
+            intervalId = setInterval(sendData, INTERVAL_MS);
+        }
+
+        // Modified handleStop function
+        function handleStop() {
+            isProcessing = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            startButton.textContent = "Start";
+            startButton.classList.remove('stop');
+            startButton.classList.add('start');
+            instructionText.disabled = false;
+            frameInterval.disabled = false;
+            
+            if (responseText.value.startsWith("Processing started...")) {
+                responseText.value = "Processing stopped.";
+            }
+        }
+
+        // Returns response text (string)
+        async function sendChatCompletionRequest(instruction, imageBase64URL) {
+            const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    max_tokens: 100,
+                    messages: [
+                        { role: 'user', content: [
+                            { type: 'text', text: instruction },
+                            { type: 'image_url', image_url: {
+                                url: imageBase64URL,
+                            } }
+                        ] },
+                    ]
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.text();
+                return `Server error: ${response.status} - ${errorData}`;
+            }
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function resetGraph() {
+            try {
+                const response = await fetch(`${GRAPH_URL}/reset_graph`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Graph reset:', data);
+                responseText.value += '\n[Graph Reset]';
+                
+                // Clear the visualization
+                graphFrame.src = 'about:blank';
+            } catch (error) {
+                console.error('Error resetting graph:', error);
+                responseText.value += '\n[Error Resetting Graph: ' + error.message + ']';
+            }
+        }
+
+        // Export graph data
+        async function exportGraph() {
+            try {
+                const response = await fetch(`${GRAPH_URL}/export_graph`);
+                if (!response.ok) throw new Error('Export failed');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'scene_graphs.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Export error:', error);
+                responseText.value = `Error exporting graph: ${error.message}`;
+            }
+        }
+
+        // Initialize camera when the page loads
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                await video.play(); // Ensure video is playing
+                responseText.value = "Camera access granted. Ready to start.";
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                responseText.value = `Error accessing camera: ${err.name} - ${err.message}. Please ensure permissions are granted and you are on HTTPS or localhost.`;
+                alert(`Error accessing camera: ${err.name}. Make sure you've granted permission and are on HTTPS or localhost.`);
+                startButton.disabled = true; // Disable start button if camera is not available
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            if (isProcessing) {
+                handleStop();
+            } else {
+                handleStart();
+            }
+        });
+
+        resetButton.addEventListener('click', resetGraph);
+        exportJSONBtn.addEventListener('click', exportGraph);
+
+        window.addEventListener('DOMContentLoaded', initCamera);
+
+        // Optional: Stop stream when page is closed/navigated away to release camera
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        });
+    </script>
+</body>
+</html>

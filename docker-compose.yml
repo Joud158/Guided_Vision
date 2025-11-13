@@ -1,0 +1,113 @@
+services:
+  # LLM Server (llama.cpp)
+  llama-server:
+    build: .
+    container_name: llm-camera-tracker-llama
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+        echo 'Starting llama-server with local SmolVLM-500M model...' &&
+        if [ -f /models/SmolVLM-500M-Instruct-Q8_0.gguf ] && [ -f /models/mmproj-SmolVLM-500M-Instruct-f16.gguf ]; then
+          echo 'Starting SmolVLM with vision capabilities...' &&
+          llama-server -m /models/SmolVLM-500M-Instruct-Q8_0.gguf --mmproj /models/mmproj-SmolVLM-500M-Instruct-f16.gguf --host 0.0.0.0 --port 8080
+        elif [ -f /models/SmolVLM-500M-Instruct-Q8_0.gguf ]; then
+          echo 'WARNING: Main model found but mmproj file missing - vision will not work' &&
+          echo 'Please run: ./run_docker.sh start (this will download missing files)' &&
+          exit 1
+        else
+          echo 'ERROR: SmolVLM model files not found' &&
+          echo 'Required files:' &&
+          echo '  - /models/SmolVLM-500M-Instruct-Q8_0.gguf (main model)' &&
+          echo '  - /models/mmproj-SmolVLM-500M-Instruct-f16.gguf (vision)' &&
+          echo 'Please run: ./run_docker.sh start (this will download them automatically)' &&
+          exit 1
+        fi
+      "
+    environment:
+      - DISABLE_TRANSFORMERS=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s  # Faster startup with pre-downloaded model
+    restart: unless-stopped
+    volumes:
+      - ./models:/models:ro  # Mount local models directory as read-only
+    networks:
+      - llm-network
+
+  # Scene Graph Server (FastAPI)
+  scene-graph-server:
+    build: .
+    container_name: llm-camera-tracker-scene
+    ports:
+      - "8081:8081"
+    command: >
+      bash -c "
+        echo 'Waiting for llama-server...' &&
+        while ! curl -f http://llama-server:8080/v1/models 2>/dev/null; do
+          echo 'Waiting for llama-server to be ready...'
+          sleep 5
+        done &&
+        echo 'Starting scene graph server...' &&
+        python3 scene_graph_server.py
+      "
+    environment:
+      - DISABLE_TRANSFORMERS=true
+    depends_on:
+      llama-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - scene_output:/app/output
+    networks:
+      - llm-network
+
+  # Web Server (Static Files)
+  web-server:
+    build: .
+    container_name: llm-camera-tracker-web
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+        echo 'Waiting for scene-graph-server...' &&
+        while ! curl -f http://scene-graph-server:8081/health 2>/dev/null; do
+          echo 'Waiting for scene-graph-server to be ready...'
+          sleep 5
+        done &&
+        echo 'Starting web server...' &&
+        python3 -m http.server 8000 --bind 0.0.0.0
+      "
+    environment:
+      - DISABLE_TRANSFORMERS=true
+    depends_on:
+      scene-graph-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/index.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    volumes:
+      - scene_output:/app/output:ro  # Read-only access to output
+    networks:
+      - llm-network
+
+volumes:
+  scene_output:
+    driver: local
+
+networks:
+  llm-network:
+    driver: bridge 
