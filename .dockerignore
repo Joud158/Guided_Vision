@@ -1,0 +1,56 @@
+# Git and version control
+.git
+.gitignore
+*.md
+
+# Python cache and virtual environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+realtime_llm/
+venv/
+env/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+*.out
+
+# Output files (will be created in container)
+output/*.html
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation (not needed in container)
+README.md
+MANUAL_INSTALL.md
+LICENSE
+
+# Scripts not needed in container
+run_demo.sh
+test_installation.py
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore 
