@@ -49,18 +49,21 @@ Special logic is used for **vehicles**: they are considered dangerous **only if 
 ## 🗂️ Project Structure
 
 ```text
-new_vlm/
+Guided_Vision/
 ├─ server/
 │  ├─ main.py          # FastAPI app, /analyze_frame endpoint
 │  ├─ vlm_service.py   # VLM loading, caption generation, danger detection
-│  ├─ requirements_server.txt
 │  └─ ... (other server files)
 │
 ├─ client_pi/
 │  ├─ pi_client.py     # Camera loop, HTTP client, TTS, terminal output
 │  ├─ config.yaml      # Client configuration (camera, server URL, etc.)
-│  ├─ requirements_pi.txt
+│  ├─ tts.py
 │  └─ ... (other client files)
+|
+├─ config.yaml
+├─ requirements_pi.txt
+├─ requirements_server.txt
 │
 └─ README.md           # This file
 ```
