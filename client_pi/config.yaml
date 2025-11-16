@@ -1,0 +1,14 @@
+# new_vlm/client_pi/config.yaml
+
+server_url: "http://127.0.0.1:8000"
+camera_index: 0
+send_width: 480
+jpeg_quality: 50
+request_timeout_sec: 15.0
+frame_interval_sec: 3.0
+min_alert_interval_sec: 5.0
+show_preview: false
+
+vlm_model_id: "HuggingFaceTB/SmolVLM-256M-Instruct"
+vlm_device: "auto"
+vlm_max_new_tokens: 64

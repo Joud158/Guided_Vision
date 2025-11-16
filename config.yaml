@@ -1,0 +1,12 @@
+# send smaller frames
+send_width: 320
+
+# give the model more time, but send fewer frames
+request_timeout_sec: 25.0
+frame_interval_sec: 3.0   # or even 5.0 during testing
+
+# server / VLM settings
+vlm_max_new_tokens: 32    # shorter generations → faster
+vlm_device: "auto"        # will use GPU if available
+vlm_model_id: "HuggingFaceTB/SmolVLM-256M-Instruct"
+
