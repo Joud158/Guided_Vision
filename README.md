@@ -110,7 +110,7 @@ Python packages (defined in `client_pi/requirements_pi.txt`):
 
 ```bash
 git clone <your-repo-url>.git
-cd new_vlm
+cd Guided_Vision
 ```
 
 ### 2. Create & activate a virtual environment
@@ -131,7 +131,7 @@ source .venv/bin/activate
 
 ### 3. Install dependencies
 
-From the project root (`new_vlm/`):
+From the project root (`Guided_Vision/`):
 
 ```bash
 # Server deps
@@ -258,7 +258,7 @@ For **Raspberry Pi + separate server**:
 
 ### 1. Start the server
 
-From `new_vlm/`:
+From `Guided_Vision/`:
 
 ```bash
 # Activate venv first
@@ -282,7 +282,7 @@ You’ll see log lines like:
 In a second terminal:
 
 ```bash
-cd new_vlm
+cd Guided_Vision
 # Activate venv again in this terminal
 cd client_pi
 python pi_client.py
@@ -323,18 +323,6 @@ Everything is based on the **natural language caption**, which keeps the system 
 
 ---
 
-## 🛣️ Roadmap / Possible Improvements
-
-- Add **configurable danger words** via YAML or JSON.
-- Add support for other VLMs (e.g. larger models, quantized models for Pi).
-- Add a small **web dashboard** showing:
-  - Last N captions.
-  - Danger history.
-  - Live camera preview.
-- Improve **distance estimation** by combining depth models or stereo cameras.
-
----
-
 ## 🙏 Acknowledgements
 
 - [HuggingFaceTB/SmolVLM-256M-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct) for the lightweight vision-language model.
@@ -346,10 +334,5 @@ Everything is based on the **natural language caption**, which keeps the system 
 
 ## 📄 License
 
-Specify your license here, for example:
-
-```text
-MIT License — see LICENSE file for details.
-```
-
-(Or update this section with the actual license you choose.)
+This project was done for EECE490: Introduction to Machine Learning at the American University of Beirut under the supervision of Prof. Ammar Mohanna.
+Members of the Team: Aya El Hajj, Batoul Hachem, and Joud Senan
