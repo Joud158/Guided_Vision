@@ -1,4 +1,0 @@
-# new_vlm/requirements_pi.txt
-opencv-python
-requests
-PyYAML
