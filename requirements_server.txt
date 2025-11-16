@@ -1,8 +1,0 @@
-fastapi
-uvicorn[standard]
-pillow
-torch
-transformers
-accelerate
-safetensors
-numpy
