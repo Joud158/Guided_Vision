@@ -1,4 +1,4 @@
-# new_vlm/server/main.py
+# Guided_Vision/server/main.py
 
 import time
 
@@ -16,6 +16,65 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def extract_direction(text: str) -> str:
+    """
+    Try to guess the direction of the danger from the caption.
+    We keep it simple and only look for basic words.
+    """
+    t = text.lower()
+
+    if "left" in t:
+        return "left"
+    if "right" in t:
+        return "right"
+    if "behind" in t or "back" in t:
+        return "behind you"
+    if "front" in t or "ahead" in t or "in front" in t:
+        return "front"
+
+    # Default if no direction found
+    return "front"
+
+
+def extract_danger_keyword(text: str) -> str:
+    """
+    Extract a short danger keyword from the caption.
+    This is just to build: '<keyword> to your <direction>'
+    """
+    t = text.lower()
+
+    danger_keywords = [
+        # sharp / cutting objects
+        "knife", "knives", "blade",
+        "sharp edge", "sharp edges",
+        "sharp corner", "sharp corners",
+        "corner of the table", "table corner",
+        "edge of the table", "table edge",
+        "broken glass",
+
+        # fire / heat / smoke
+        "fire", "flame", "flames",
+
+        # cables / wires
+        "exposed cable", "exposed wire",
+        "loose cable", "loose wire",
+        "cable", "wire",
+
+        # holes / gaps / stairs / obstacles
+        "hole", "open hole", "pit", "gap",
+        "stairs", "staircase", "step", "steps",
+        "obstacle", "barrier",
+    ]
+
+    for kw in danger_keywords:
+        if kw in t:
+            # Return a clean short keyword for the alert
+            return kw
+
+    # Fallback if we don't detect a specific keyword
+    return "danger"
 
 
 @app.post("/analyze_frame")
@@ -38,11 +97,14 @@ async def analyze_frame(file: UploadFile = File(...)):
     print(f"[SERVER] Caption: {caption!r}  (danger={danger})")
 
     # 4) If dangerous, build the spoken warning sentence for the client
-    #    Caption already has type + direction + distance.
     warning = None
     if danger:
+        direction = extract_direction(caption)
+        danger_kw = extract_danger_keyword(caption)
+
         # This is what the client will *speak*
-        warning = f"WATCH OUT! DANGER {caption}"
+        # Example: sharp edge to your left
+        warning = f"{danger_kw} to your {direction}"
 
     latency_ms = (time.time() - start) * 1000.0
 

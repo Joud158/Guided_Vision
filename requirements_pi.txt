@@ -1,4 +1,4 @@
-# new_vlm/requirements_pi.txt
+# Guided_Vision/requirements_pi.txt
 opencv-python
 requests
 PyYAML

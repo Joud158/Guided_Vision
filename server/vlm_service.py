@@ -1,7 +1,6 @@
-# new_vlm/server/vlm_service.py
+# Guided_Vision/server/vlm_service.py
 
 import io
-import re
 import warnings
 
 import torch
@@ -32,13 +31,12 @@ PROMPT = (
     "<image>\n"
     "You are a vision assistant for a visually impaired person. "
     "Describe in ONE short, direct sentence what you see in the image. "
-    "Always mention the main objects, people, and any vehicles. "
-    "Always say where each important object is relative to the camera using words like "
+    "Focus on important objects, people, and any dangerous or potentially dangerous elements "
+    "such as knives, blades, sharp edges or corners, broken glass, fire, smoke, exposed cables, "
+    "holes, pits, gaps, stairs, or other obstacles. "
+    "Always say where each important danger is relative to the camera using words like "
     "front, left, right, or behind. If the distance is clear, mention the approximate "
     "distance in meters. "
-    "For vehicles, explicitly say whether they are parked, moving away, passing by, or "
-    "coming towards you. If a vehicle is coming towards you, include the exact phrase "
-    "'coming towards you' in the sentence. "
     "Do not talk about being an AI or an assistant. Do not repeat the prompt. "
     "Just answer with the description sentence.\n"
     "Assistant:"
@@ -99,89 +97,39 @@ def clean_caption(text: str) -> str:
 
     return t
 
-# --- Danger classification (regex with word boundaries) ---
 
-# Non-vehicle dangers
-NON_VEHICLE_DANGER_PATTERNS = [
-    r"\bknife(s)?\b",
-    r"\bknives\b",
-    r"\bscissor(s)?\b",
-    r"\bblade(s)?\b",
-    r"\bsharp edge(s)?\b",
-    r"\bsharp\b",
-    r"\bfire\b",
-    r"\bflame(s)?\b",
-    r"\bsmoke\b",
-    r"\bcable(s)?\b",
-    r"\bwire(s)?\b",
-    r"\bexposed cable(s)?\b",
-    r"\bstair(s)?\b",
-    r"\bstep(s)?\b",
-    r"\bhole(s)?\b",
-    r"\bpit\b",
-    r"\bobstacle(s)?\b",
+# --- Danger classification (no vehicles at all) ---
+
+HAZARD_KEYWORDS = [
+    # sharp / cutting objects
+    "knife", "knives", "blade", "scissors",
+    "sharp edge", "sharp edges",
+    "sharp corner", "sharp corners",
+    "corner of the table", "table corner",
+    "edge of the table", "table edge",
+    "broken glass",
+
+    # fire / heat / smoke
+    "fire", "flame", "flames", "smoke",
+
+    # cables / wires
+    "exposed cable", "exposed wire",
+    "loose cable", "loose wire",
+    "cable", "wire",
+
+    # holes / gaps / stairs / obstacles
+    "hole", "open hole", "pit", "gap",
+    "stairs", "staircase", "step", "steps",
+    "obstacle", "barrier",
 ]
-
-# Vehicle detection is handled separately so we only trigger on vehicles
-# that are coming towards the user.
-VEHICLE_WORDS = [
-    "car",
-    "cars",
-    "vehicle",
-    "vehicles",
-    "bus",
-    "buses",
-    "truck",
-    "trucks",
-    "motorcycle",
-    "motorcycles",
-    "bike",
-    "bikes",
-]
-
-VEHICLE_APPROACH_PATTERNS = [
-    r"coming toward you",
-    r"coming towards you",
-    r"coming toward the camera",
-    r"coming towards the camera",
-    r"approaching you",
-    r"approaching the camera",
-    r"moving toward you",
-    r"moving towards you",
-    r"moving toward the camera",
-    r"moving towards the camera",
-    r"driving toward you",
-    r"driving towards you",
-    r"driving toward the camera",
-    r"driving towards the camera",
-    r"heading toward you",
-    r"heading towards you",
-    r"coming at you",
-    r"moving closer to you",
-]
-
 
 
 def is_dangerous(description: str) -> bool:
-    """Return True if description contains any danger keyword.
+    text = description.lower()
 
-    - Non-vehicle hazards (knife, fire, cables, stairs, etc.) trigger danger directly.
-    - Vehicles only trigger danger if they are coming towards the user/camera.
-    """
-    low = description.lower()
-
-    # 1) Non-vehicle dangers
-    for pat in NON_VEHICLE_DANGER_PATTERNS:
-        if re.search(pat, low):
+    # ✅ Only check for hazards (no vehicles, no special handling)
+    for kw in HAZARD_KEYWORDS:
+        if kw in text:
             return True
 
-    # 2) Vehicle dangers: require a vehicle word AND an "approaching" phrase
-    has_vehicle = any(word in low for word in VEHICLE_WORDS)
-    if has_vehicle:
-        for pat in VEHICLE_APPROACH_PATTERNS:
-            if re.search(pat, low):
-                return True
-
     return False
-
-

@@ -1,4 +1,4 @@
-# new_vlm/client_pi/pi_client.py
+# Guided_Vision/client_pi/pi_client.py
 
 import sys
 import time
@@ -144,14 +144,16 @@ def main() -> None:
             is_danger = bool(data.get("is_danger", False))
             message = data.get("message")
             raw_caption = data.get("raw_caption") or message
+            warning = data.get("warning")
 
             # Always show what the model thinks (one short sentence)
             if raw_caption:
                 print(f"[GuidedVision] Caption: {raw_caption!r} (danger={is_danger})")
 
-            # 🔊 If danger, ALWAYS speak, every frame — no conditions
+            # 🔊 If danger, speak ONLY the short warning from the server
             if is_danger:
-                spoken_text = f"WATCH OUT! DANGER {raw_caption}"
+                # warning is like: "sharp edge to your left"
+                spoken_text = warning or "danger to your front"
                 print(f"[GuidedVision] SPEAK: {spoken_text}")
                 speak(spoken_text)
 

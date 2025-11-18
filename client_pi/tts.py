@@ -1,4 +1,4 @@
-# new_vlm/client_pi/tts.py
+# Guided_Vision/client_pi/tts.py
 
 import threading
 import subprocess

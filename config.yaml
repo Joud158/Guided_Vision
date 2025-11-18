@@ -1,3 +1,5 @@
+# Guided_Vision/config.yaml
+
 # send smaller frames
 send_width: 320
 

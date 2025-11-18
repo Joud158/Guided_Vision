@@ -1,0 +1,15 @@
+# Python venv
+.venv/
+venv/
+
+# Cache / compiled
+__pycache__/
+*.pyc
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE configs
+.vscode/
+.idea/

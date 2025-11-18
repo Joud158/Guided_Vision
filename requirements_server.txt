@@ -1,3 +1,5 @@
+# Guided_Vision/requirements_server.txt
+
 fastapi
 uvicorn[standard]
 pillow
@@ -6,3 +8,4 @@ transformers
 accelerate
 safetensors
 numpy
+python-multipart

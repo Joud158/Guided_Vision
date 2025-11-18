@@ -1,4 +1,4 @@
-# new_vlm/client_pi/config.yaml
+# Guided_Vision/client_pi/config.yaml
 
 server_url: "http://127.0.0.1:8000"
 camera_index: 0
