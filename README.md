@@ -322,6 +322,81 @@ Example client output:
 Everything is based on the **natural language caption**, which keeps the system flexible and model-agnostic.
 
 ---
+Front-End Dashboard (New Feature)
+
+We added a fully interactive web dashboard for GuidedVision, built using HTML, CSS, and JavaScript.
+The front-end runs locally in any browser and communicates with the FastAPI server at http://127.0.0.1:8000.
+
+🔥 What the Dashboard Does
+
+Shows live camera preview from the laptop webcam.
+
+Lets the user switch between:
+
+Laptop Mode → Browser captures webcam frames and sends them to /analyze_frame.
+
+Raspberry Pi Mode → Dashboard listens for updates from /last_result.
+
+Displays:
+
+The latest detected caption.
+
+A hazard status indicator (safe / danger).
+
+Latency, last update time, and server status.
+
+On danger, the browser speaks the alert aloud using the Web Speech API:
+
+WATCH OUT! DANGER <caption>
+
+
+On safe scenes → no audio, only dashboard text.
+
+📁 File Location
+
+Place this file inside your project:
+
+Guided_Vision/
+└── frontend/
+    └── index.html
+
+
+Run it by simply opening index.html in Chrome/Edge/Firefox.
+
+🚀 How It Works
+
+Uses navigator.mediaDevices.getUserMedia to access webcam.
+
+Every ~3 seconds:
+
+Captures a frame.
+
+Sends it as JPEG to POST /analyze_frame.
+
+Uses the Web Speech API for browser-based TTS.
+
+Uses fetch("/last_result") when running in Raspberry Pi mode.
+
+🖥️ Start the Dashboard
+
+Start the VLM server:
+
+cd server
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+Open the dashboard:
+
+Guided_Vision/frontend/index.html
+
+
+Choose Laptop Camera → click Start Capture.
+
+For Raspberry Pi mode:
+
+Run pi_client.py on the Pi.
+
+Switch the dashboard to Raspberry Pi mode.
 
 ## 🙏 Acknowledgements
 
