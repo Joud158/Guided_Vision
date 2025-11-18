@@ -9,6 +9,8 @@ from vlm_service import generate_caption, is_dangerous
 
 app = FastAPI()
 
+LAST_RESULT=None
+
 # Allow frontend / clients to call this API
 app.add_middleware(
     CORSMiddleware,
@@ -112,10 +114,32 @@ async def analyze_frame(file: UploadFile = File(...)):
     # - message: short text version (same as caption)
     # - raw_caption: same as caption
     # - warning: sentence that the client should speak (None when safe)
-    return {
-        "is_danger": danger,
-        "message": caption,
-        "raw_caption": caption,
-        "warning": warning,
-        "latency_ms": latency_ms,
-    }
+    result = {
+                "is_danger": danger,
+                "message": caption,
+                "raw_caption": caption,
+                "warning": warning,
+                "latency_ms": latency_ms,
+            }
+
+            # Save for the dashboard / Pi mode to poll
+    global LAST_RESULT
+    LAST_RESULT = result
+
+    return result
+@app.get("/last_result")
+async def last_result():
+    """
+    Return the last analyze_frame result (from Pi client or web client).
+    Useful for the dashboard / Pi mode.
+    """
+    global LAST_RESULT
+    if LAST_RESULT is None:
+        return {
+            "is_danger": False,
+            "message": None,
+            "raw_caption": None,
+            "warning": None,
+            "latency_ms": None,
+        }
+    return LAST_RESULT

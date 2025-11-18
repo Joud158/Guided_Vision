@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Guided Vision Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #020617;
+      --mint: #3eb489;
+      --danger: #f97373;
+      --safe: #4ade80;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1e293b, #020617 55%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1080px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(2,6,23,0.96));
+      border-radius: 24px;
+      padding: 22px 24px 24px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 20% 0%, #22c55e, #22d3ee);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 35px rgba(45, 212, 191, 0.5);
+    }
+
+    .title-icon span {
+      font-size: 22px;
+    }
+
+    .title-text h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .title-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.7);
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(30,64,175,0.22), rgba(15,23,42,0.98));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      padding: 16px 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      gap: 3px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .mode-btn span.icon {
+      font-size: 14px;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      color: #020617;
+      font-weight: 600;
+      box-shadow: 0 0 18px rgba(45, 212, 191, 0.7);
+    }
+
+    .video-shell {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      background: radial-gradient(circle at top left, #1f2937, #020617);
+      min-height: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-shell video {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #020617;
+    }
+
+    .video-placeholder {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 18px;
+    }
+
+    .video-placeholder span {
+      display: inline-flex;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 0%, #22c55e, #22d3ee);
+      margin-bottom: 8px;
+      font-size: 24px;
+      box-shadow: 0 0 30px rgba(45, 212, 191, 0.7);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .primary-btn {
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #020617;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 18px rgba(45, 212, 191, 0.7);
+    }
+
+    .primary-btn[disabled] {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    .status-dot.danger {
+      background: var(--danger);
+      box-shadow: 0 0 10px rgba(248, 113, 113, 0.9);
+    }
+
+    .status-dot.safe {
+      background: var(--safe);
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.9);
+    }
+
+    .status-dot.idle {
+      background: #e5e7eb;
+      box-shadow: none;
+    }
+
+    .mint-caption {
+      margin-top: 10px;
+      padding: 14px 14px 16px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top left, rgba(62,180,137,0.15), rgba(15,23,42,0.98));
+      border: 1px solid rgba(62, 180, 137, 0.7);
+      box-shadow: 0 0 30px rgba(62, 180, 137, 0.45);
+    }
+
+    .mint-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: rgba(148, 163, 184, 0.95);
+      margin-bottom: 5px;
+    }
+
+    .mint-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--mint);
+      text-shadow: 0 0 14px rgba(62, 180, 137, 0.9);
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+
+    .mint-sub {
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.9);
+      margin-top: 6px;
+    }
+
+    .side-card {
+      background: radial-gradient(circle at top right, rgba(56,189,248,0.24), rgba(15,23,42,0.96));
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      padding: 14px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .side-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .pill-small {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.8);
+    }
+
+    .side-body {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .side-body ul {
+      margin-top: 8px;
+      padding-left: 15px;
+    }
+
+    .side-body li {
+      margin-bottom: 5px;
+    }
+
+    .side-metric {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .metric-box {
+      padding: 7px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .metric-value {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .metric-value.mint {
+      color: var(--mint);
+    }
+
+    .metric-value.danger {
+      color: var(--danger);
+    }
+
+    .metric-value.safe {
+      color: var(--safe);
+    }
+
+    footer {
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title">
+        <div class="title-icon">
+          <span>📷</span>
+        </div>
+        <div class="title-text">
+          <h1>Guided Vision Dashboard</h1>
+          <p>Compact hazard awareness for visually impaired users</p>
+        </div>
+      </div>
+      <div class="pill">
+        <span class="pill-dot"></span>
+        <span id="serverStatus">Server: checking…</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- LEFT: camera / Pi modes -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Input Source</div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeLaptopBtn">
+              <span class="icon">💻</span>
+              Laptop camera
+            </button>
+            <button class="mode-btn" id="modePiBtn">
+              <span class="icon">📷</span>
+              Raspberry&nbsp;Pi
+            </button>
+          </div>
+        </div>
+
+        <div class="video-shell">
+          <video id="video" autoplay playsinline style="display:none;"></video>
+          <div class="video-placeholder" id="videoPlaceholder">
+            <span>📷</span>
+            <div id="placeholderText">
+              Laptop mode: click <strong>Start capture</strong> to use your webcam.
+            </div>
+          </div>
+          <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+
+        <div class="controls">
+          <button class="primary-btn" id="startBtn">▶ Start capture</button>
+          <span class="hint" id="modeHint">
+            Laptop camera → frames sent to /analyze_frame every ~3 seconds.
+          </span>
+        </div>
+
+        <div class="status-row">
+          <div class="status-pill">
+            <span class="status-dot idle" id="dangerDot"></span>
+            <span id="dangerLabel">Idle</span>
+          </div>
+          <div class="status-pill">
+            ⏱ <span id="latencyLabel">Latency: — ms</span>
+          </div>
+          <div class="status-pill">
+            🔁 <span id="lastUpdatedLabel">Last update: —</span>
+          </div>
+        </div>
+
+        <div class="mint-caption">
+          <div class="mint-label">Detected sentence</div>
+          <div class="mint-text" id="captionText">
+            Waiting for first frame…
+          </div>
+          <div class="mint-sub" id="warningText">
+            Hazard phrase will appear here in dashboard mint.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: overview -->
+      <section class="side-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="side-title">Overview</div>
+          <span class="pill-small" id="modeBadge">Mode: Laptop camera</span>
+        </div>
+        <div class="side-body">
+          <p><strong>Two ways to use Guided Vision:</strong></p>
+          <ul>
+            <li><strong>Laptop camera</strong> – browser sends frames directly to the server.</li>
+            <li><strong>Raspberry Pi</strong> – Pi sends frames; this dashboard only shows the latest caption from <code>/last_result</code>.</li>
+          </ul>
+
+          <div class="side-metric">
+            <div class="metric-box">
+              <div class="metric-label">Current source</div>
+              <div class="metric-value" id="metricSource">Laptop webcam</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Danger status</div>
+              <div class="metric-value safe" id="metricDanger">Safe / idle</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Last latency</div>
+              <div class="metric-value" id="metricLatency">— ms</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Server URL</div>
+              <div class="metric-value mint" id="metricServerUrl">http://127.0.0.1:8000</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>Frames are sent as JPEG to <code>/analyze_frame</code>. Pi mode polls <code>/last_result</code>.</div>
+      <div>Guided Vision · hazard descriptions in dashboard mint 💚</div>
+    </footer>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    const SERVER_URL = "http://127.0.0.1:8000";
+
+    // DOM refs
+    const modeLaptopBtn = document.getElementById("modeLaptopBtn");
+    const modePiBtn = document.getElementById("modePiBtn");
+    const startBtn = document.getElementById("startBtn");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const videoPlaceholder = document.getElementById("videoPlaceholder");
+    const placeholderText = document.getElementById("placeholderText");
+
+    const captionText = document.getElementById("captionText");
+    const warningText = document.getElementById("warningText");
+    const dangerDot = document.getElementById("dangerDot");
+    const dangerLabel = document.getElementById("dangerLabel");
+    const latencyLabel = document.getElementById("latencyLabel");
+    const lastUpdatedLabel = document.getElementById("lastUpdatedLabel");
+
+    const serverStatus = document.getElementById("serverStatus");
+    const modeBadge = document.getElementById("modeBadge");
+    const modeHint = document.getElementById("modeHint");
+
+    const metricSource = document.getElementById("metricSource");
+    const metricDanger = document.getElementById("metricDanger");
+    const metricLatency = document.getElementById("metricLatency");
+    const metricServerUrl = document.getElementById("metricServerUrl");
+    metricServerUrl.textContent = SERVER_URL;
+
+    // State
+    let currentMode = "laptop";     // "laptop" or "pi"
+    let captureRunning = false;
+    let captureTimeout = null;
+    let mediaStream = null;
+    let piPollInterval = null;
+
+    // --- helpers ---
+    function setDangerState(isDanger, hasResult) {
+      dangerDot.classList.remove("danger", "safe", "idle");
+      if (!hasResult) {
+        dangerDot.classList.add("idle");
+        dangerLabel.textContent = "Idle";
+        metricDanger.textContent = "Safe / idle";
+        metricDanger.className = "metric-value safe";
+        return;
+      }
+      if (isDanger) {
+        dangerDot.classList.add("danger");
+        dangerLabel.textContent = "Danger detected";
+        metricDanger.textContent = "Danger";
+        metricDanger.className = "metric-value danger";
+      } else {
+        dangerDot.classList.add("safe");
+        dangerLabel.textContent = "Safe";
+        metricDanger.textContent = "Safe";
+        metricDanger.className = "metric-value safe";
+      }
+    }
+
+    function updateFromResult(data) {
+        const hasResult = data && (data.message || data.raw_caption || data.warning);
+        const caption = (data && (data.raw_caption || data.message)) || "Waiting for first frame…";
+        const warning = (data && data.warning) || "No active hazard warning.";
+
+        captionText.textContent = caption;
+        warningText.textContent = warning;
+
+        const isDanger = data ? Boolean(data.is_danger) : false;
+        setDangerState(isDanger, hasResult);
+
+        if (data && data.latency_ms != null) {
+            const ms = Math.round(data.latency_ms);
+
+            // 🔴 IMPORTANT: only normal quotes and + here
+            latencyLabel.textContent = "Latency: " + ms + " ms";
+            metricLatency.textContent = ms + " ms";
+        } else {
+            latencyLabel.textContent = "Latency: — ms";
+            metricLatency.textContent = "— ms";
+        }
+
+        const now = new Date();
+        // 🔴 Same here: no ${}, just concatenation
+        lastUpdatedLabel.textContent = "Last update: " + now.toLocaleTimeString();
+    }
+
+    async function checkServer() {
+      try {
+        const res = await fetch(SERVER_URL + "/last_result");
+        if (!res.ok) throw new Error();
+        serverStatus.textContent = "Server: online";
+      } catch (e) {
+        serverStatus.textContent = "Server: offline";
+      }
+    }
+    checkServer();
+
+    // --- mode switching ---
+    function setMode(mode) {
+      if (mode === currentMode) return;
+      currentMode = mode;
+
+      stopCapture();
+      stopPiPolling();
+
+      if (mode === "laptop") {
+        modeLaptopBtn.classList.add("active");
+        modePiBtn.classList.remove("active");
+        startBtn.disabled = false;
+        startBtn.textContent = "▶ Start capture";
+        placeholderText.innerHTML = 'Laptop mode: click <strong>Start capture</strong> to use your webcam.';
+        modeHint.textContent = "Laptop camera → frames sent to /analyze_frame every ~3 seconds.";
+        modeBadge.textContent = "Mode: Laptop camera";
+        metricSource.textContent = "Laptop webcam";
+      } else {
+        modePiBtn.classList.add("active");
+        modeLaptopBtn.classList.remove("active");
+        startBtn.disabled = false;
+        startBtn.textContent = "▶ Start listening";
+        placeholderText.innerHTML = "Pi mode: run the Raspberry Pi client; this dashboard will show /last_result.";
+        modeHint.textContent = "Raspberry Pi → this page polls /last_result, no webcam needed.";
+        modeBadge.textContent = "Mode: Raspberry Pi";
+        metricSource.textContent = "Raspberry Pi client";
+      }
+
+      captionText.textContent = "Waiting for first frame…";
+      warningText.textContent = "Hazard phrase will appear here in dashboard mint.";
+      setDangerState(false, false);
+
+      video.style.display = (mode === "laptop" && captureRunning) ? "block" : "none";
+      videoPlaceholder.style.display = (mode === "laptop" && captureRunning) ? "none" : "block";
+    }
+
+    modeLaptopBtn.addEventListener("click", () => setMode("laptop"));
+    modePiBtn.addEventListener("click", () => setMode("pi"));
+
+    // --- laptop mode capture ---
+    async function startCapture() {
+      if (captureRunning) return;
+      captureRunning = true;
+      startBtn.textContent = "⏹ Stop capture";
+
+      try {
+        if (!mediaStream) {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          video.srcObject = mediaStream;
+        }
+        video.style.display = "block";
+        videoPlaceholder.style.display = "none";
+
+        const sendFrame = async () => {
+          if (!captureRunning) return;
+
+          try {
+            const w = video.videoWidth || 640;
+            const h = video.videoHeight || 480;
+            const targetWidth = 480;
+            const scale = targetWidth / w;
+
+            canvas.width = targetWidth;
+            canvas.height = Math.round(h * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const blob = await new Promise((resolve) =>
+              canvas.toBlob(resolve, "image/jpeg", 0.6)
+            );
+
+            const form = new FormData();
+            form.append("file", blob, "frame.jpg");
+
+            const resp = await fetch(SERVER_URL + "/analyze_frame", {
+              method: "POST",
+              body: form,
+            });
+
+            if (resp.ok) {
+              const data = await resp.json();
+              updateFromResult(data);
+            } else {
+              console.error("Server error:", resp.status);
+            }
+          } catch (err) {
+            console.error("Capture error:", err);
+          }
+
+          if (captureRunning) {
+            captureTimeout = setTimeout(sendFrame, 3000); // 3s
+          }
+        };
+
+        sendFrame();
+      } catch (err) {
+        console.error("Webcam error:", err);
+        captureRunning = false;
+        startBtn.textContent = "▶ Start capture";
+        video.style.display = "none";
+        videoPlaceholder.style.display = "block";
+        placeholderText.innerHTML = "Could not access webcam. Check browser permissions.";
+      }
+    }
+
+    function stopCapture() {
+      captureRunning = false;
+      startBtn.textContent = currentMode === "laptop" ? "▶ Start capture" : "▶ Start listening";
+      if (captureTimeout) {
+        clearTimeout(captureTimeout);
+        captureTimeout = null;
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((t) => t.stop());
+        mediaStream = null;
+      }
+      video.srcObject = null;
+      video.style.display = "none";
+      videoPlaceholder.style.display = "block";
+    }
+
+    // --- Pi mode polling ---
+    function startPiPolling() {
+      if (piPollInterval) return;
+
+      const poll = async () => {
+        try {
+          const resp = await fetch(SERVER_URL + "/last_result");
+          if (resp.ok) {
+            const data = await resp.json();
+            updateFromResult(data);
+          }
+        } catch (err) {
+          console.error("Pi poll error:", err);
+        }
+      };
+
+      poll();
+      piPollInterval = setInterval(poll, 3000);
+    }
+
+    function stopPiPolling() {
+      if (piPollInterval) {
+        clearInterval(piPollInterval);
+        piPollInterval = null;
+      }
+    }
+
+    // --- start/stop button ---
+    startBtn.addEventListener("click", () => {
+      if (currentMode === "laptop") {
+        if (captureRunning) {
+          stopCapture();
+        } else {
+          startCapture();
+        }
+      } else {
+        if (piPollInterval) {
+          stopPiPolling();
+          startBtn.textContent = "▶ Start listening";
+        } else {
+          startPiPolling();
+          startBtn.textContent = "⏹ Stop listening";
+        }
+      }
+    });
+
+    // default mode
+    setMode("laptop");
+  </script>
+</body>
+</html>
