@@ -166,7 +166,7 @@
       </div>
 
       <div class="status-row">
-        <div><span class="status-dot idle" id="dangerDot"></span> 
+        <div><span class="status-dot idle" id="dangerDot"></span>
           <span id="dangerLabel">Idle</span></div>
         <div>⏱ <span id="latencyLabel">Latency: — ms</span></div>
         <div>🔁 <span id="lastUpdatedLabel">Last update: —</span></div>
@@ -181,16 +181,26 @@
 
     <!-- RIGHT -->
     <section class="side-card">
-      <h3>Overview</h3>
-      <p>
-        Laptop webcam mode streams frames to <code>/analyze_frame</code>.<br>
-        Raspberry Pi mode polls <code>/last_result</code>.
-      </p>
+<h2>Overview</h2>
+<p>
+  <br>
+  Guided Vision supports two hardware setups for real-time hazard detection.
+  <br><br>
+  <strong>Laptop Version:</strong><br>
+  Guided Vision runs fully on a laptop, using the built-in camera to detect hazards in real time.
+  It processes video, analyzes dangers through an AI model, and gives instant audio alerts.
+  <br><br>
+  <strong>Raspberry Pi Version:</strong><br>
+  Guided Vision also runs on a compact Raspberry Pi setup with a camera module, capturing live video
+  and sending it to the AI model for analysis. The Pi delivers immediate voice warnings,
+  enabling a portable, lightweight, real-world assistive device.
+</p>
+
     </section>
   </main>
 
   <footer>
-    Guided Vision Dashboard 
+    Guided Vision Dashboard
   </footer>
 </div>
 
