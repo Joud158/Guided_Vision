@@ -1,0 +1,9 @@
+.venv
+__pycache__
+*.pyc
+.env
+frontend/
+client_pi/
+*.log
+.cache
+.git
