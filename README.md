@@ -7,7 +7,7 @@ GuidedVision is an assistive system for visually impaired users that uses a **Vi
 - Classify whether the scene contains **danger**.
 - If there is danger, it speaks a loud alert:
 
-  > 'DANGER' to your 'DIRECTION' 
+  > "DANGER to your DIRECTION"
 
 - If the scene is safe, it **prints the description** only (no speech).
 
@@ -43,7 +43,7 @@ GuidedVision is an assistive system for visually impaired users that uses a **Vi
 
 ## 🗂️ Project Structure
 
-```
+```text
 Guided_Vision/
 ├─ server/
 │  ├─ main.py
@@ -56,20 +56,24 @@ Guided_Vision/
 │
 ├─ frontend/
 │  └─ index.html
+│  └─ Dockerfile
 │
 ├─ requirements_pi.txt
 ├─ requirements_server.txt
-└─ README.md
+├─ docker-compose.yml
+└─ Dockerfile
 ```
 
 ---
 
 ## ⚙️ Requirements
 
-### **Python**
+### **Option 1 – Native (Python)**
+
+#### Python
 Recommended: **Python 3.10+**
 
-### **Server Dependencies**
+#### Server Dependencies
 
 Defined in `server/requirements_server.txt`:
 
@@ -80,10 +84,10 @@ Defined in `server/requirements_server.txt`:
 - transformers  
 - accelerate  
 - safetensors  
-- numpy
+- numpy  
 - python-multipart  
 
-### **Client Dependencies**
+#### Client Dependencies
 
 Defined in `client_pi/requirements_pi.txt`:
 
@@ -91,14 +95,23 @@ Defined in `client_pi/requirements_pi.txt`:
 - requests  
 - PyYAML  
 
-### **TTS Requirements**
+#### TTS Requirements
 
-- **Windows:** PowerShell System.Speech  
+- **Windows:** PowerShell `System.Speech`  
 - **Linux / Raspberry Pi:** `espeak`
 
 ---
 
-## 🚀 Quickstart (Laptop)
+### **Option 2 – Docker (Backend + Frontend)**
+
+- **Docker** (or Docker Desktop on Windows/macOS)  
+- **Docker Compose** (included in recent Docker Desktop versions)
+
+With Docker you don’t need to install Python dependencies locally; everything runs inside containers.
+
+---
+
+## 🚀 Quickstart (Laptop – Native Python)
 
 ### 1. Clone the repository
 ```bash
@@ -109,7 +122,10 @@ cd Guided_Vision
 ### 2. Create a virtual environment
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+# macOS / Linux
+source .venv/bin/activate
+# Windows PowerShell
+# .venv\Scripts\Activate.ps1
 ```
 
 ### 3. Install dependencies
@@ -120,10 +136,50 @@ pip install -r client_pi/requirements_pi.txt
 
 ---
 
+## 🚢 Quickstart (Docker – Backend + Frontend)
+
+> This spins up **both** the FastAPI backend and the web dashboard using Docker.
+
+From the project root:
+
+### 1. Build images (local)
+
+```bash
+# Backend (FastAPI + VLM)
+docker build -t guided_vision-server:latest .
+
+# Frontend (Nginx serving index.html)
+docker build -t guided_vision-frontend:latest ./frontend
+```
+
+### 2. Start both services with Docker Compose
+
+```bash
+docker compose up
+```
+
+This will:
+
+- Run the **backend** on port **8000**
+- Run the **frontend dashboard** on port **4173**
+
+### 3. Open in your browser
+
+- Frontend dashboard: <http://127.0.0.1:4173>  
+- Backend health check: <http://127.0.0.1:8000/> → should return `{"status": "ok"}`  
+- Backend docs (optional): <http://127.0.0.1:8000/docs>
+
+To stop everything:
+
+```bash
+docker compose down
+```
+---
+
 ## 🧩 Client Configuration (`client_pi/config.yaml`)
 
 ```yaml
-server_url: "http://127.0.0.1:8000" #for laptop version/ change to raspberry pi IP if using the hardware
+server_url: "http://127.0.0.1:8000"  # for laptop version; change to Raspberry Pi IP if using the hardware
 camera_index: 0
 send_width: 480
 jpeg_quality: 50
@@ -148,7 +204,7 @@ Receives image → captions → checks danger → returns:
   "is_danger": true,
   "message": "Fire in front of you",
   "raw_caption": "Fire in front of you",
-  "warning": "Fire in front of you",
+  "warning": "Fire to your front",
   "latency_ms": 1280
 }
 ```
@@ -168,7 +224,7 @@ Receives image → captions → checks danger → returns:
 ## 🧱 Danger Logic Summary
 
 **Always dangerous** if caption mentions:  
-knife, blade, scissors, fire, flames, smoke, exposed cables, wires, holes, pits, stairs, obstacles.
+`knife`, `blade`, `scissors`, `fire`, `flames`, `smoke`, `exposed cable`, `wire`, `hole`, `pit`, `stairs`, `obstacle`, etc.
 
 ---
 
@@ -178,7 +234,7 @@ We added a fully interactive web dashboard for GuidedVision, built using **HTML,
 
 The dashboard runs locally in any browser and communicates with the FastAPI server at:
 
-```
+```text
 http://127.0.0.1:8000
 ```
 
@@ -201,11 +257,14 @@ http://127.0.0.1:8000
 
 - Safe scenes: No audio, only text.
 
-Run it by simply opening **index.html** in Chrome, Edge, or Firefox.
+You can either:
+
+- Open `frontend/index.html` directly in the browser (native mode), **or**
+- Use the Dockerized dashboard via <http://127.0.0.1:4173> when running `docker compose up`.
 
 ---
 
-## 🖥️ Start the Dashboard
+## 🖥️ Start the Dashboard (Native Python Mode)
 
 ### 1. Start the VLM server
 ```bash
@@ -214,7 +273,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### 2. Open dashboard
-```
+```text
 Guided_Vision/frontend/index.html
 ```
 
@@ -233,4 +292,4 @@ This project was developed for **EECE490: Introduction to Machine Learning** at
 Team Members:
 - Aya El Hajj  
 - Batoul Hachem  
-- Joud Senan  
+- Joud Senan
