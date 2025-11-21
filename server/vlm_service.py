@@ -109,6 +109,9 @@ HAZARD_KEYWORDS = [
     "edge of the table", "table edge",
     "broken glass",
 
+    # general obstacles / furniture
+    "table", "chair", "desk", "door", "wall", "edge",
+
     # fire / heat / smoke
     "fire", "flame", "flames", "smoke",
 
@@ -122,6 +125,7 @@ HAZARD_KEYWORDS = [
     "stairs", "staircase", "step", "steps",
     "obstacle", "barrier",
 ]
+
 
 
 def is_dangerous(description: str) -> bool:

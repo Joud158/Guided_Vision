@@ -1,0 +1,14 @@
+services:
+  backend:
+    image: joudss/guidedvision-server:v2
+    container_name: guidedvision-backend
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: joudss/guidedvision-frontend:v2
+    container_name: guidedvision-frontend
+    ports:
+      - "4173:80"
+    depends_on:
+      - backend

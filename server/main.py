@@ -9,7 +9,13 @@ from vlm_service import generate_caption, is_dangerous
 
 app = FastAPI()
 
-LAST_RESULT=None
+
+@app.get("/")
+async def health():
+    return {"status": "ok"}
+
+
+LAST_RESULT = None
 
 # Allow frontend / clients to call this API
 app.add_middleware(
@@ -54,8 +60,7 @@ def extract_danger_keyword(text: str) -> str:
         "sharp corner", "sharp corners",
         "corner of the table", "table corner",
         "edge of the table", "table edge",
-        "broken glass", "table", "chair", "door", "edge",
-        "wall",
+        "broken glass", "table", "chair", "door", "edge", "wall",
 
         # fire / heat / smoke
         "fire", "flame", "flames",
@@ -63,7 +68,7 @@ def extract_danger_keyword(text: str) -> str:
         # cables / wires
         "exposed cable", "exposed wire",
         "loose cable", "loose wire",
-        "cable", "wire", "rope", "pipe"
+        "cable", "wire", "rope", "pipe",
 
         # holes / gaps / stairs / obstacles
         "hole", "open hole", "pit", "gap",
@@ -73,7 +78,6 @@ def extract_danger_keyword(text: str) -> str:
 
     for kw in danger_keywords:
         if kw in t:
-            # Return a clean short keyword for the alert
             return kw
 
     # Fallback if we don't detect a specific keyword
@@ -84,7 +88,7 @@ def extract_danger_keyword(text: str) -> str:
 async def analyze_frame(file: UploadFile = File(...)):
     """
     Receive a single frame, run the VLM, classify danger, and return a compact JSON
-    that matches what client_pi/pi_client.py expects.
+    that matches what client_pi/pi_client.py and the dashboard expect.
     """
     start = time.time()
 
@@ -104,30 +108,25 @@ async def analyze_frame(file: UploadFile = File(...)):
     if danger:
         direction = extract_direction(caption)
         danger_kw = extract_danger_keyword(caption)
-
-        # This is what the client will *speak*
-        # Example: sharp edge to your left
         warning = f"{danger_kw} to your {direction}"
 
     latency_ms = (time.time() - start) * 1000.0
 
-    # This JSON shape matches pi_client.py exactly:
-    # - message: short text version (same as caption)
-    # - raw_caption: same as caption
-    # - warning: sentence that the client should speak (None when safe)
     result = {
-                "is_danger": danger,
-                "message": caption,
-                "raw_caption": caption,
-                "warning": warning,
-                "latency_ms": latency_ms,
-            }
+        "is_danger": danger,
+        "message": caption,
+        "raw_caption": caption,
+        "warning": warning,
+        "latency_ms": latency_ms,
+    }
 
-            # Save for the dashboard / Pi mode to poll
+    # Save for the dashboard / Pi mode to poll
     global LAST_RESULT
     LAST_RESULT = result
 
     return result
+
+
 @app.get("/last_result")
 async def last_result():
     """
