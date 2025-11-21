@@ -47,21 +47,21 @@ GuidedVision is an assistive system for visually impaired users that uses a **Vi
 Guided_Vision/
 ├─ server/
 │  ├─ main.py
-│  ├─ vlm_service.py
+│  └─ vlm_service.py
 │
 ├─ client_pi/
 │  ├─ pi_client.py
 │  ├─ config.yaml
-│  ├─ tts.py
+│  └─ tts.py
 │
 ├─ frontend/
+│  ├─ Dockerfile 
 │  └─ index.html
-│  └─ Dockerfile
 │
 ├─ requirements_pi.txt
 ├─ requirements_server.txt
 ├─ docker-compose.yml
-└─ Dockerfile
+└─ Dockerfile     
 ```
 
 ---
@@ -104,10 +104,10 @@ Defined in `client_pi/requirements_pi.txt`:
 
 ### **Option 2 – Docker (Backend + Frontend)**
 
-- **Docker** (or Docker Desktop on Windows/macOS)  
-- **Docker Compose** (included in recent Docker Desktop versions)
+You have two choices:
 
-With Docker you don’t need to install Python dependencies locally; everything runs inside containers.
+1. **Use prebuilt images from Docker Hub**.
+2. **Build images locally from source**.
 
 ---
 
@@ -136,32 +136,26 @@ pip install -r client_pi/requirements_pi.txt
 
 ---
 
-## 🚢 Quickstart (Docker – Backend + Frontend)
+## 🚢 Quickstart (Docker – Using Prebuilt Images)
 
-> This spins up **both** the FastAPI backend and the web dashboard using Docker.
-
-From the project root:
-
-### 1. Build images (local)
+### 1. Clone the repo
 
 ```bash
-# Backend (FastAPI + VLM)
-docker build -t guided_vision-server:latest .
-
-# Frontend (Nginx serving index.html)
-docker build -t guided_vision-frontend:latest ./frontend
+git clone https://github.com/Joud158/Guided_Vision.git
+cd Guided_Vision
 ```
 
-### 2. Start both services with Docker Compose
+### 2. Start the stack (Docker will automatically pull the images)
 
 ```bash
 docker compose up
 ```
 
-This will:
+Docker will:
 
-- Run the **backend** on port **8000**
-- Run the **frontend dashboard** on port **4173**
+- Pull `joudss/guidedvision-server:v2` (backend)
+- Pull `joudss/guidedvision-frontend:v2` (frontend)
+- Run both services
 
 ### 3. Open in your browser
 
@@ -174,6 +168,45 @@ To stop everything:
 ```bash
 docker compose down
 ```
+
+---
+
+## 🧱 (Optional) Build Docker Images Locally
+
+If you modify the code and want to build your own images instead of using Docker Hub:
+
+```bash
+cd Guided_Vision
+
+# Backend (FastAPI + VLM)
+docker build -t guided_vision-server:latest .
+
+# Frontend (Nginx serving index.html)
+docker build -t guided_vision-frontend:latest ./frontend
+```
+
+Then update `docker-compose.yml` to use the local images:
+
+```yaml
+services:
+  backend:
+    image: guided_vision-server:latest
+    ports:
+      - "8000:8000"
+  frontend:
+    image: guided_vision-frontend:latest
+    ports:
+      - "4173:80"
+    depends_on:
+      - backend
+```
+
+And run:
+
+```bash
+docker compose up
+```
+
 ---
 
 ## 🧩 Client Configuration (`client_pi/config.yaml`)
