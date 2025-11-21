@@ -54,7 +54,8 @@ def extract_danger_keyword(text: str) -> str:
         "sharp corner", "sharp corners",
         "corner of the table", "table corner",
         "edge of the table", "table edge",
-        "broken glass",
+        "broken glass", "table", "chair", "door", "edge",
+        "wall",
 
         # fire / heat / smoke
         "fire", "flame", "flames",
@@ -62,7 +63,7 @@ def extract_danger_keyword(text: str) -> str:
         # cables / wires
         "exposed cable", "exposed wire",
         "loose cable", "loose wire",
-        "cable", "wire",
+        "cable", "wire", "rope", "pipe"
 
         # holes / gaps / stairs / obstacles
         "hole", "open hole", "pit", "gap",
