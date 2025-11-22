@@ -150,7 +150,7 @@ cd Guided_Vision
 ```bash
 docker compose up
 ```
-Note: The backend would take a bit of time to load since it is loading the model.
+Note: The backend would take a bit of time to load since it is loading the model. Therefore, **make sure the backend container is fully up and running before testing the frontend**. Check the Docker Compose logs to confirm it has started.
 
 Docker will:
 
