@@ -1,0 +1,11 @@
+# Guided_Vision/requirements_server.txt
+
+fastapi
+uvicorn[standard]
+pillow
+torch
+transformers
+accelerate
+safetensors
+numpy
+python-multipart

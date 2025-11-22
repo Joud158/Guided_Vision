@@ -1,0 +1,4 @@
+# Guided_Vision/requirements_pi.txt
+opencv-python
+requests
+PyYAML
