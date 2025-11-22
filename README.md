@@ -44,24 +44,42 @@ GuidedVision is an assistive system for visually impaired users that uses a **Vi
 ## 🗂️ Project Structure
 
 ```text
-Guided_Vision/
+GUIDED_VISION/
+│
+├─ frontend/
+│  ├─ Dockerfile
+│  └─ index.html
+│
+├─ RaspberryPi Version/
+│  ├─ client_pi/
+│  │  ├─ __pycache__/
+│  │  ├─ config.yaml
+│  │  ├─ pi_client.py
+│  │  └─ tts.py
+│  │
+│  ├─ server/
+│  │  ├─ __pycache__/
+│  │  ├─ main.py
+│  │  └─ vlm_service.py
+│  │
+│  ├─ requirements_pi.txt
+│  ├─ requirements_server.txt
+│  └─ rpi_setup_guidedvision.md
+│
 ├─ server/
+│  ├─ __pycache__/
 │  ├─ main.py
 │  └─ vlm_service.py
 │
-├─ client_pi/
-│  ├─ pi_client.py
-│  ├─ config.yaml
-│  └─ tts.py
-│
-├─ frontend/
-│  ├─ Dockerfile 
-│  └─ index.html
-│
-├─ requirements_pi.txt
-├─ requirements_server.txt
+├─ .dockerignore
+├─ .gitignore
+├─ config.yaml
 ├─ docker-compose.yml
-└─ Dockerfile     
+├─ Dockerfile
+├─ Final Report - Guided Vision.pdf
+├─ README.md
+├─ requirements_pi.txt
+└─ requirements_server.txt   
 ```
 
 ---
